@@ -160,6 +160,8 @@ class stockApi():
 		jsondata = json.loads(response.text)
 		if jsondata["status"] == 200:
 			data = jsondata["data"]
+			if not data:
+				return pd.DataFrame()
 			df = pd.DataFrame(data)
 			df.columns = ["stockno","stockname","date","openprice","closeprice","lowprice","highprice","volume"]
 			df = df.drop(columns = ["stockno","stockname"])
