@@ -17,7 +17,7 @@ class stockApi():
 	def __init__(self):
 		self.secretClientId = ''
 		self.secretToken = ''
-		self.backendUrl = "http://3.143.234.103:81/"
+		self.backendUrl = "http://3.21.154.195:81/"
 		self.data = {}
 		self.constant = StockEnum
 	def login(self,secretClientId,secretToken):
@@ -77,7 +77,7 @@ class stockApi():
 			"tradeCategory":tradeCategory,
 			"tradeType":tradeType,
 			"takeprice":takeprice,
-			"pendingType":pendingType,
+			"pendingType":pendingType, 
 		}
 		response = requests.post(self.backendUrl + "api/order",json = data)
 		try:
@@ -163,9 +163,8 @@ class stockApi():
 			if not data:
 				return pd.DataFrame()
 			df = pd.DataFrame(data)
-			df.columns = ["stockno","stockname","date","openprice","closeprice","lowprice","highprice","volume"]
+			df.columns = ["stockno","stockname","ts","Open","Close","Low","High","Volume"]
 			df = df.drop(columns = ["stockno","stockname"])
-			df = df.set_index("date")
 			return df
 		else:
 			raise TickException(jsondata["status"],jsondata["error"])

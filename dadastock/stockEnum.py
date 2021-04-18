@@ -39,7 +39,8 @@ takePrice: 取價類型
 """
 takePrice_LimitDown = "LimitDown" # 跌停
 takePrice_LimitUp = "LimitUp" # 漲停
-takePrice_Unchanged = "Unchanged" # 現價
+takePrice_Unchanged = "Unchanged" # 市價
+takePrice_Current = "Current"
 
 class StockEnum(str,Enum):
 	Common = tradeType_Common
@@ -59,3 +60,4 @@ class StockEnum(str,Enum):
 	LimitDown = takePrice_LimitDown
 	LimitUp = takePrice_LimitUp
 	Unchanged = takePrice_Unchanged
+	Current = takePrice_Current
