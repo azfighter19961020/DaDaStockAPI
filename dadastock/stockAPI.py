@@ -3,6 +3,7 @@ import json
 from dadastock.trade import Trade
 from dadastock.tick import Tick
 from dadastock.inventory import Inventory
+import datetime
 import pandas as pd
 from dadastock.stockEnum import StockEnum
 from dadastock.apiException import secretClientIdException, \
@@ -67,6 +68,12 @@ class stockApi():
 			raise secretClientIdException()
 		if not self.secretToken:
 			raise secretTokenException()
+		if (tradeType == "Common") or (tradeType == "Fixing"):
+			if amount < 1000:
+				raise TradeException("400","選取Common但數量小於1000!")
+		else:
+			if amount >= 1000:
+				raise TradeException("400","選取Common以外但數量大於1000!")
 		data = {
 			"secretClientId":self.secretClientId,
 			"secretToken":self.secretToken,
@@ -89,7 +96,9 @@ class stockApi():
 		else:
 			if jsondata["status"] == 704 or jsondata["status"] == 703:
 				raise OrderParameterException(jsondata["status"],jsondata["error"])
-			raise TradeException(jsondata["status"],jsondata["message"]) 
+			raise TradeException(jsondata["status"],jsondata["error"]) 
+
+
 	def checkOrder(self,orderno):
 		if not self.secretClientId:
 			raise secretClientIdException()
@@ -97,15 +106,90 @@ class stockApi():
 			raise secretTokenException()
 		data = {
 			"secretClientId":self.secretClientId,
-			"secretToken":self.secretToken,
-			"orderno":orderno
+			"secretToken":self.secretToken
 		}
-		response = requests.post(self.backendUrl + "api/order",json = data)
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			return Trade(**jsondata["data"])
+		response = requests.post(self.backendUrl + "api/order/APIOrder/%s"%orderno,json = data)
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
 		else:
-			raise TradeException(jsondata["status"],jsondata["message"])
+			if jsondata["status"] == 200:
+				return Trade(**jsondata["data"])
+			else:
+				raise TradeException(jsondata["status"],jsondata["error"])
+
+
+	def checkAllOrder(self):
+		if not self.secretClientId:
+			raise secretClientIdException()
+		if not self.secretToken:
+			raise secretTokenException()
+		data = {
+			"secretClientId":self.secretClientId,
+			"secretToken":self.secretToken
+		}
+		response = requests.post(self.backendUrl + "api/order/APIOrder",json = data)
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
+		else:
+			if jsondata["status"] == 200:
+				data = []
+				for o in jsondata["data"]:
+					data.append(Trade(**o))
+				return data
+			else:
+				raise TradeException(jsondata["status"],jsondata["error"])
+
+
+	def checkOrderByDate(self,requestDate = datetime.datetime.now().strftime('%Y-%m-%d')):
+		if not self.secretClientId:
+			raise secretClientIdException()
+		if not self.secretToken:
+			raise secretTokenException()
+		data = {
+			"secretClientId":self.secretClientId,
+			"secretToken":self.secretToken
+		}
+		response = requests.post(self.backendUrl + "api/order/APIOrder/%s"%requestDate,json = data)
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
+		else:
+			if jsondata["status"] == 200:
+				data = []
+				for o in jsondata["data"]:
+					data.append(Trade(**o))
+				return data
+			else:
+				raise TradeException(jsondata["status"],jsondata["error"])
+
+	def checkOrderByInterval(self,startDate,endDate):
+		if not self.secretClientId:
+			raise secretClientIdException()
+		if not self.secretToken:
+			raise secretTokenException()
+		data = {
+			"secretClientId":self.secretClientId,
+			"secretToken":self.secretToken
+		}
+		response = requests.post(self.backendUrl + "api/order/APIOrder/%s/%s"%(startDate,endDate),json = data)
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
+		else:
+			if jsondata["status"] == 200:
+				data = []
+				for o in jsondata["data"]:
+					data.append(Trade(**o))
+				return data
+			else:
+				raise TradeException(jsondata["status"],jsondata["error"])
+
 	def cancelOrder(self,trade):
 		if not self.secretClientId:
 			raise secretClientIdException()
@@ -118,11 +202,15 @@ class stockApi():
 			"orderno":orderno
 		}
 		response = requests.put(self.backendUrl + "api/order",json = data)
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			return Trade(**jsondata["data"])
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
 		else:
-			raise TradeException(jsondata["status"],jsondata["message"])
+			if jsondata["status"] == 200:
+				return Trade(**jsondata["data"])
+			else:
+				raise TradeException(jsondata["status"],jsondata["message"])
 
 	def modifyOrder(self,trade,modifyType,modifyValue):
 		if not self.secretClientId:
@@ -138,36 +226,48 @@ class stockApi():
 			"modifyValue":modifyValue
 		}
 		response = requests.put(self.backendUrl + "api/order",json = data)
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			return Trade(**jsondata["data"])
-		else:
-			raise TradeException(jsondata["status"],jsondata["message"])
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
+		else:		
+			if jsondata["status"] == 200:
+				return Trade(**jsondata["data"])
+			else:
+				raise TradeException(jsondata["status"],jsondata["message"])
 
 	def stockdata(self,stockno):
 		response = requests.post(self.backendUrl + "api/stocks/" + str(stockno))
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			data = jsondata["data"]
-			returndata = [[i[j] for i in data] for j in range(8)]
-			return Tick(*returndata)
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
 		else:
-			raise TickException(jsondata["status"],jsondata["error"])
+			if jsondata["status"] == 200:
+				data = jsondata["data"]
+				returndata = [[i[j] for i in data] for j in range(8)]
+				return Tick(*returndata)
+			else:
+				raise TickException(jsondata["status"],jsondata["error"])
 
 	def getKBardata(self,stockno,startDate,endDate):
 		# datetime format: 20200101
 		response = requests.post(self.backendUrl + "api/stocks/{}/{}/{}".format(stockno,startDate,endDate))
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			data = jsondata["data"]
-			if not data:
-				return pd.DataFrame()
-			df = pd.DataFrame(data)
-			df.columns = ["stockno","stockname","ts","Open","Close","Low","High","Volume"]
-			df = df.drop(columns = ["stockno","stockname"])
-			return df
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
 		else:
-			raise TickException(jsondata["status"],jsondata["error"])
+			if jsondata["status"] == 200:
+				data = jsondata["data"]
+				if not data:
+					return pd.DataFrame()
+				df = pd.DataFrame(data)
+				df.columns = ["stockno","stockname","ts","Open","Close","Low","High","Volume"]
+				df = df.drop(columns = ["stockno","stockname"])
+				return df
+			else:
+				raise TickException(jsondata["status"],jsondata["error"])
 
 	def getInventory(self):
 		if not self.secretClientId:
@@ -179,11 +279,14 @@ class stockApi():
 			"secretToken":self.secretToken
 		}
 		response = requests.post(self.backendUrl + "api/inventory/api",json = data)
-		jsondata = json.loads(response.text)
-		if jsondata["status"] == 200:
-			data = jsondata["data"]
-			return [Inventory(**data[i]) for i in range(len(data))]
+		try:
+			jsondata = json.loads(response.text)
+		except Exception as e:
+			raise InternalServerException()
 		else:
-			raise InventoryException(jsondata["status"],jsondata["error"])
-
+			if jsondata["status"] == 200:
+				data = jsondata["data"]
+				return [Inventory(**data[i]) for i in range(len(data))]
+			else:
+				raise InventoryException(jsondata["status"],jsondata["error"])
 

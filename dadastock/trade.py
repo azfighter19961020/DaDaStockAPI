@@ -1,5 +1,5 @@
 class Trade:
-	def __init__(self,orderno,stockno,stockname \
+	def __init__(self,date,orderno,stockno,stockname \
 		,amount,orderType,price, \
 		tradeCategory,tradeType,takeprice,pendingType,state):
 		self.__orderno = orderno
@@ -13,7 +13,12 @@ class Trade:
 		self.__takeprice = takeprice
 		self.__state = state
 		self.__pendingType = pendingType
+		self.__date = date
 
+	@property
+	def date(self):
+		return self.__date
+	
 	@property
 	def pendingType(self):
 		return self.__pendingType
@@ -52,6 +57,7 @@ class Trade:
 	def __str__(self):
 		return """
 			{
+				date:%s,
 				orderno:%s,
 				stockno:%s,
 				stockname:%s,
@@ -65,12 +71,13 @@ class Trade:
 				state:%s,
 
 			}
-		""" % (self.__orderno,self.__stockno,self.__stockname, \
+		""" % (self.__date,self.__orderno,self.__stockno,self.__stockname, \
 			self.__amount,self.__orderType,self.__price, \
 			self.__tradeCategory,self.__tradeType,self.__takeprice,self.__pendingType,self.__state)
 
 	def toDict(self):
 		return 	{
+				"date":self.__date,
 				"orderno":self.__orderno,
 				"stockno":self.__stockno,
 				"stockname":self.__stockname,
