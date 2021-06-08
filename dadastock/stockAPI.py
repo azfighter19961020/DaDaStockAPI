@@ -13,12 +13,13 @@ from dadastock.apiException import secretClientIdException, \
 						TradeException, \
 						OrderParameterException, \
 						BalanceAPIException, \
-						InventoryException
+						InventoryException, \
+						TickException
 class stockApi():
-	def __init__(self):
+	def __init__(self,url,port):
 		self.secretClientId = ''
 		self.secretToken = ''
-		self.backendUrl = "http://3.21.154.195:81/"
+		self.backendUrl = "http://%s:%s/" % (url,port)
 		self.data = {}
 		self.constant = StockEnum
 	def login(self,secretClientId,secretToken):
@@ -290,3 +291,5 @@ class stockApi():
 			else:
 				raise InventoryException(jsondata["status"],jsondata["error"])
 
+
+				

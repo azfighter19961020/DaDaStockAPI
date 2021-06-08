@@ -44,8 +44,6 @@ takePrice_Current = "Current"
 
 class StockEnum(str,Enum):
 	Common = tradeType_Common
-	# AMT = tradeType_AMT
-	# Odd = tradeType_Odd
 	Odd = tradeType_Odd
 	Fixing = tradeType_Fixing
 	IntradayOdd = tradeType_IntradayOdd
